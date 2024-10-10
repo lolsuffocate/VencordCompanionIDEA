@@ -30,7 +30,7 @@ tasks {
         // java 21 is required from 242+ so to be able to support latest this is as low as we can go
         // todo: look into separate build or module or something for lower versions
         sinceBuild.set("242")
-        untilBuild.set("latest")
+        untilBuild.set("243.*") // gonna need to update this as versions release
     }
 
     runIde {
