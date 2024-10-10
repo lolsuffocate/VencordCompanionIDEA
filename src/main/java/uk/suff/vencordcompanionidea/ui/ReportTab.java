@@ -1,11 +1,9 @@
 package uk.suff.vencordcompanionidea.ui;
 
 import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.*;
-import uk.suff.vencordcompanionidea.Utils;
 import uk.suff.vencordcompanionidea.actions.Reporter;
 
 import javax.swing.*;

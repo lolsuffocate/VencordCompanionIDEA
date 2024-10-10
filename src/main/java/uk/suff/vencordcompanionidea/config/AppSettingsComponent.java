@@ -3,7 +3,7 @@ package uk.suff.vencordcompanionidea.config;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.progress.*;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.*;
@@ -14,6 +14,7 @@ import uk.suff.vencordcompanionidea.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Queue;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 

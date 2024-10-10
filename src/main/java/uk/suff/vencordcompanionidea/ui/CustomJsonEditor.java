@@ -5,7 +5,7 @@ import com.intellij.json.JsonLanguage;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.*;
+import com.intellij.ui.LanguageTextField;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 

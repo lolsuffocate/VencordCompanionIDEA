@@ -8,9 +8,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.FormBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
 import uk.suff.vencordcompanionidea.*;
-import uk.suff.vencordcompanionidea.config.AppSettings;
 
 import javax.swing.*;
 import javax.swing.border.Border;

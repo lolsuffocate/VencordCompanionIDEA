@@ -1,7 +1,6 @@
 package uk.suff.vencordcompanionidea.actions;
 
 import com.intellij.execution.process.*;
-import com.intellij.icons.AllIcons;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.progress.*;

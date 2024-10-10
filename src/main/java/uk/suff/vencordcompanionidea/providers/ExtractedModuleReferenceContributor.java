@@ -1,9 +1,7 @@
 package uk.suff.vencordcompanionidea.providers;
 
-import com.intellij.lang.javascript.psi.*;
-import com.intellij.patterns.*;
+import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.*;
-import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
 public class ExtractedModuleReferenceContributor extends PsiReferenceContributor {

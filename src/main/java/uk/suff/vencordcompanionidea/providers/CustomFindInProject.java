@@ -1,16 +1,13 @@
 package uk.suff.vencordcompanionidea.providers;
 
 import com.intellij.find.*;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.*;
 import uk.suff.vencordcompanionidea.*;
 
-import java.util.*;
+import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 

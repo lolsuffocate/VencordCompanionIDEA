@@ -4,9 +4,6 @@ import com.intellij.codeInsight.codeVision.*;
 import com.intellij.codeInsight.codeVision.ui.model.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.NlsContexts;
-import com.intellij.util.TriConsumer;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function3;
 import org.jetbrains.annotations.*;
 
 import javax.swing.*;

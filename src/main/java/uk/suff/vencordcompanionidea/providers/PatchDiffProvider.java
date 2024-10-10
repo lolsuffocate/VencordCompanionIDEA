@@ -5,7 +5,7 @@ import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hints.codeVision.DaemonBoundCodeVisionProvider;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.util.ApplicationKt;
 import kotlin.Pair;

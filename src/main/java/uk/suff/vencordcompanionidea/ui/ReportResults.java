@@ -1,21 +1,8 @@
 package uk.suff.vencordcompanionidea.ui;
 
-import com.intellij.ide.fileTemplates.impl.FileTemplateConfigurable;
-import com.intellij.json.JsonLanguage;
-import com.intellij.lexer.Lexer;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.*;
-import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.fileEditor.impl.*;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.vfs.*;
-import com.intellij.openapi.vfs.impl.VirtualFileManagerImpl;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.*;
 import org.codehaus.plexus.util.StringUtils;
 import org.json.*;
 import uk.suff.vencordcompanionidea.Utils;
@@ -24,7 +11,6 @@ import uk.suff.vencordcompanionidea.actions.Reporter;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
-import java.io.File;
 import java.util.*;
 
 public class ReportResults{
@@ -162,7 +148,6 @@ public class ReportResults{
 
 	public void populatePanel(JPanel panel, JSONArray json){
 		int count = json.length();
-		// getParent = viewport, viewport.getParent = scrollpane, scrollpane.getParent = panel
 		Container scrollView = panel.getParent().getParent();
 		JTabbedPane tabPane = ((JTabbedPane) scrollView.getParent());
 

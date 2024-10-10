@@ -10,7 +10,7 @@ import org.json.*;
 import uk.suff.vencordcompanionidea.Utils;
 import uk.suff.vencordcompanionidea.config.AppSettings;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class ParsedPatch{
 

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.*;
 import org.json.JSONObject;
 import uk.suff.vencordcompanionidea.WebSocketServer;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 
 public class ExtractGoToDeclarationHandler implements GotoDeclarationHandler{
 	@Override

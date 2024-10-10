@@ -1,17 +1,17 @@
 package uk.suff.vencordcompanionidea;
 
 import com.intellij.lang.javascript.JavascriptLanguage;
-import com.intellij.notification.*;
-import com.intellij.openapi.application.*;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.ui.components.JBLabel;
-import org.json.*;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.*;
-import org.eclipse.jetty.websocket.api.*;
+import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import org.eclipse.jetty.websocket.server.*;
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
+import org.json.*;
 import uk.suff.vencordcompanionidea.actions.Reporter;
 import uk.suff.vencordcompanionidea.config.AppSettings;
 import uk.suff.vencordcompanionidea.providers.*;
@@ -19,8 +19,8 @@ import uk.suff.vencordcompanionidea.providers.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @WebSocket
 public class WebSocketServer{

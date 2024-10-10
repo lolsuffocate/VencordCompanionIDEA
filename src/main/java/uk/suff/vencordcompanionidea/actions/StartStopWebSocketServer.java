@@ -5,7 +5,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.*;
 import org.jetbrains.annotations.NotNull;
 import uk.suff.vencordcompanionidea.*;
-import uk.suff.vencordcompanionidea.config.AppSettings;
 
 public class StartStopWebSocketServer extends AnAction{
 

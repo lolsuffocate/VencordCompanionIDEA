@@ -4,18 +4,14 @@ import com.intellij.lang.javascript.JavascriptLanguage;
 import com.intellij.lang.javascript.psi.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.ProcessingContext;
-import org.codehaus.groovy.transform.SourceURIASTTransformation;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import uk.suff.vencordcompanionidea.WebSocketServer;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
 
 public class ExtractedModuleReferenceProvider extends PsiReferenceProvider{
 

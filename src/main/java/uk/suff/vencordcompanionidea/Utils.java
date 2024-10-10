@@ -4,43 +4,32 @@ import com.intellij.diff.*;
 import com.intellij.diff.impl.DiffSettingsHolder;
 import com.intellij.diff.requests.DiffRequest;
 import com.intellij.execution.*;
-import com.intellij.execution.actions.ActivateRunToolWindowAction;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.*;
 import com.intellij.execution.runners.*;
-import com.intellij.execution.ui.*;
 import com.intellij.find.*;
 import com.intellij.notification.*;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.*;
-import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.*;
-import com.intellij.openapi.vfs.*;
-import com.intellij.openapi.wm.*;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.*;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.content.*;
 import com.intellij.util.ApplicationKt;
 import com.intellij.util.ui.EDT;
 import kotlin.jvm.functions.Function2;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.*;
-import org.json.JSONObject;
 
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 
 public class Utils{
 
