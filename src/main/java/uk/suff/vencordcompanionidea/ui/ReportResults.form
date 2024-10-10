@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="uk.suff.vencordcompanionidea.ui.ReportResults">
+  <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <tabbedpane id="983aa" binding="mainTabbedPane">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="1" use-parent-layout="false">
+            <preferred-size width="200" height="200"/>
+          </grid>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <tabbedpane id="3758f" binding="failedPatchesTabbedPane">
+            <constraints>
+              <tabbedpane title="Failed Patches"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <scrollpane id="cc748">
+                <constraints>
+                  <tabbedpane title="Found No Module"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="2c523" binding="foundNoModulePanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+                    <constraints/>
+                    <properties>
+                      <alignmentX value="1.0"/>
+                      <alignmentY value="0.0"/>
+                    </properties>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                </children>
+              </scrollpane>
+              <scrollpane id="7649d">
+                <constraints>
+                  <tabbedpane title="Had No Effect"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="3b3ab" binding="hadNoEffectPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+                    <constraints/>
+                    <properties/>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                </children>
+              </scrollpane>
+              <scrollpane id="39bac">
+                <constraints>
+                  <tabbedpane title="Undoing Patch Group"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="5eeb7" binding="undoingPatchGroup" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+                    <constraints/>
+                    <properties/>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                </children>
+              </scrollpane>
+              <scrollpane id="657b">
+                <constraints>
+                  <tabbedpane title="Errored Patch"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="cca93" binding="erroredPatch" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+                    <constraints/>
+                    <properties/>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                </children>
+              </scrollpane>
+            </children>
+          </tabbedpane>
+          <scrollpane id="6d5df" binding="failedWebpackFindsScrollPane">
+            <constraints>
+              <tabbedpane title="Failed Webpack Finds"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="1702c" binding="failedWebpackFindsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints/>
+                <properties/>
+                <border type="none"/>
+                <children/>
+              </grid>
+            </children>
+          </scrollpane>
+          <grid id="c616f" binding="rawPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <tabbedpane title="Raw"/>
+            </constraints>
+            <properties/>
+            <border type="empty"/>
+            <children>
+              <scrollpane id="b44f2" binding="rawJsonScrollPane">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children/>
+              </scrollpane>
+            </children>
+          </grid>
+        </children>
+      </tabbedpane>
+    </children>
+  </grid>
+</form>

@@ -1,0 +1,106 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>uk.suff.VencordCompanion</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>VencordCompanion</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="abpifapps@gmail.com" url="https://suff.uk">Suffocate</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description>A direct port of the VSCode VencordCompanion Extension</description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>JavaScript</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <codeInsight.daemonBoundCodeVisionProvider implementation="uk.suff.vencordcompanionidea.providers.PatchDiffProvider"/>
+        <codeInsight.daemonBoundCodeVisionProvider implementation="uk.suff.vencordcompanionidea.providers.ExtractCodeVisionProvider"/>
+        <codeInsight.daemonBoundCodeVisionProvider implementation="uk.suff.vencordcompanionidea.providers.TestCodeVisionProvider"/>
+        <config.codeVisionGroupSettingProvider implementation="uk.suff.vencordcompanionidea.providers.TestCodeVisionSettingsProvider"/>
+        <config.codeVisionGroupSettingProvider implementation="uk.suff.vencordcompanionidea.providers.ExtractCodeVisionSettingsProvider"/>
+        <config.codeVisionGroupSettingProvider implementation="uk.suff.vencordcompanionidea.providers.DiffCodeVisionSettingsProvider"/>
+
+        <notificationGroup id="Companion Notification Group"
+                           displayType="BALLOON"/>
+
+        <backgroundPostStartupActivity implementation="uk.suff.vencordcompanionidea.actions.Startup"/>
+
+        <defaultLiveTemplates file="liveTemplates/defPlugin.xml"/>
+        <liveTemplateContext contextId="TS_STATEMENT"
+                             implementation="com.intellij.lang.javascript.liveTemplates.typescript.TSStatementContextType"/>
+        <fileEditorProvider implementation="uk.suff.vencordcompanionidea.ui.ReportTabProvider"/>
+        <applicationService
+                serviceImplementation="uk.suff.vencordcompanionidea.config.AppSettings"/>
+        <applicationConfigurable
+                parentId="tools"
+                displayName="Vencord Companion"
+                instance="uk.suff.vencordcompanionidea.config.AppSettingsConfigurable"
+                id="uk.suff.vencordcompanionidea.config.AppSettingsConfigurable"
+        />
+        <gotoDeclarationHandler implementation="uk.suff.vencordcompanionidea.providers.ExtractGoToDeclarationHandler"
+                                id="uk.suff.vencordcompanionidea.providers.ExtractGoToDeclarationHandler"/>
+
+        <psi.referenceContributor
+                implementation="uk.suff.vencordcompanionidea.providers.ExtractedModuleReferenceContributor"
+                language="JavaScript"/>
+        <findInProjectSearchEngine implementation="uk.suff.vencordcompanionidea.providers.CustomFindInProject"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="uk.suff.vencordcompanionidea.actions.Startup" topic="com.intellij.ide.plugins.DynamicPluginListener"/>
+    </projectListeners>
+
+    <actions>
+        <group id="uk.suff.vencordcompanionidea.Vencord"
+               text="Vencord"
+               popup="true"
+               description="Vencord stuff"
+               class="uk.suff.vencordcompanionidea.actions.VencordActionGroup">
+            <add-to-group group-id="MainMenu" anchor="before" relative-to-action="WindowMenu"/>
+            <action id="StartWebSocketServer"
+                    class="uk.suff.vencordcompanionidea.actions.StartStopWebSocketServer"
+                    text="Start Websocket Server"
+                    description="Start the websocket server"
+                    icon="AllIcons.Actions.Execute"/>
+            <action id="RunReporter"
+                    class="uk.suff.vencordcompanionidea.actions.Reporter"
+                    text="Run Reporter"
+                    description="Reload Discord in reporter mode"
+                    icon="AllIcons.Actions.Report"/>
+            <action id="BuildAndReload"
+                    class="uk.suff.vencordcompanionidea.actions.BuildDevAndReload"
+                    text="Build Dev and Reload"
+                    description="Build Vencord in dev mode and reload Discord"
+                    icon="AllIcons.Actions.Rebuild"/>
+            <action class="uk.suff.vencordcompanionidea.actions.ExtractModuleById"
+                    id="ExtractModuleById"
+                    text="Extract Module By ID"
+                    popup="true"
+                    description="Extract a module by its ID"
+                    icon="AllIcons.Actions.Search"/>
+            <action class="uk.suff.vencordcompanionidea.actions.ExtractModuleByFind"
+                    id="ExtractModuleByFind"
+                    text="Extract Module By Find"
+                    popup="true"
+                    description="Extract a module by finding text within it"
+                    icon="AllIcons.Actions.Search"/>
+            <action class="uk.suff.vencordcompanionidea.actions.OpenSettingsAction"
+                    id="OpenSettingsAction"
+                    text="Open Settings"
+                    popup="true"
+                    description="Open the Vencord Companion settings"
+                    icon="AllIcons.General.Settings"/>
+        </group>
+    </actions>
+</idea-plugin>

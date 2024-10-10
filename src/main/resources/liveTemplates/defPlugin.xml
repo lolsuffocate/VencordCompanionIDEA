@@ -1,0 +1,27 @@
+<templateSet group="Vencord">
+    <template name="defPlugin" value="import { Devs } from &quot;@utils/constants&quot;;&#10;import definePlugin from &quot;@utils/types&quot;;&#10;&#10;export default definePlugin({&#10;                name: &quot;$NAME$&quot;,&#10;                description: &quot;$DESCRIPTION$&quot;,&#10;                authors: [Devs.$AUTHOR$],&#10;});" description="Define a Plugin" toReformat="true" toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="&quot;PluginName&quot;" alwaysStopAt="true" />
+        <variable name="DESCRIPTION" expression="" defaultValue="&quot;A short description&quot;" alwaysStopAt="true" />
+        <variable name="AUTHOR" expression="" defaultValue="&quot;Your Name&quot;" alwaysStopAt="true" />
+        <context>
+            <option name="TS_STATEMENT" value="true" />
+        </context>
+    </template>
+    <template name="usrPlugin" value="import definePlugin from &quot;@utils/types&quot;;&#10;&#10;export default definePlugin({&#10;                name: &quot;$NAME$&quot;,&#10;                description: &quot;$DESCRIPTION$&quot;,&#10;                authors: [{ id: $AUTHOR_ID$, name: &quot;$AUTHOR_NAME$&quot; }],&#10;});" description="Define a User Plugin" toReformat="true" toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="&quot;PluginName&quot;" alwaysStopAt="true" />
+        <variable name="DESCRIPTION" expression="" defaultValue="&quot;A short description&quot;" alwaysStopAt="true" />
+        <variable name="AUTHOR_ID" expression="" defaultValue="&quot;12345678910n&quot;" alwaysStopAt="true" />
+        <variable name="AUTHOR_NAME" expression="" defaultValue="&quot;Your Name&quot;" alwaysStopAt="true" />
+        <context>
+            <option name="TS_STATEMENT" value="true" />
+        </context>
+    </template>
+    <template name="vcPlugin" value="import { Devs } from &quot;@utils/constants&quot;;&#10;import definePlugin from &quot;@utils/types&quot;;&#10;&#10;export default definePlugin({&#10;                name: &quot;$NAME$&quot;,&#10;                description: &quot;$DESCRIPTION$&quot;,&#10;                authors: [Devs.$AUTHOR$],&#10;});" description="Define a Plugin" toReformat="true" toShortenFQNames="true">
+        <variable name="NAME" expression="" defaultValue="&quot;PluginName&quot;" alwaysStopAt="true" />
+        <variable name="DESCRIPTION" expression="" defaultValue="&quot;A short description&quot;" alwaysStopAt="true" />
+        <variable name="AUTHOR" expression="" defaultValue="&quot;Your Name&quot;" alwaysStopAt="true" />
+        <context>
+            <option name="TS_STATEMENT" value="true" />
+        </context>
+    </template>
+</templateSet>
