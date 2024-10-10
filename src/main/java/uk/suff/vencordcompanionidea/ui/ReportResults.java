@@ -208,8 +208,8 @@ public class ReportResults{
 								replacementPanel.setBorder(BorderFactory.createTitledBorder("Replacement"+(replacement.length() > 1 ? "s" : "")));
 								replacement.forEach(o1->{
 									JSONObject replacementObj = (JSONObject) o1;
-									String match = replacementObj.getString("match");
-									String replace = replacementObj.getString("replace");
+									String match = replacementObj.has("match") ? replacementObj.getString("match") : "";
+									String replace = replacementObj.has("replace") ? replacementObj.getString("replace") : "";
 									String jsEscapedMatch = Reporter.decanoniseRegex(match);
 									String jsEscapedReplace = Reporter.decanoniseReplace(replace, plugin);
 
