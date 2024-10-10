@@ -27,7 +27,10 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("IU-232.*") // needs updating
+        // java 21 is required from 242+ so to be able to support latest this is as low as we can go
+        // todo: look into separate build or module or something for lower versions
+        sinceBuild.set("242")
+        untilBuild.set("latest")
     }
 
     runIde {
@@ -61,7 +64,7 @@ dependencies {
     implementation("org.eclipse.jetty.websocket:websocket-jetty-client:11.0.20")
     implementation("org.json:json:20231013")
     intellijPlatform {
-        intellijIdeaUltimate("2024.2.0.1")
+        intellijIdeaUltimate("2024.2.3")
         bundledPlugins("JavaScript")
         instrumentationTools()
     }
