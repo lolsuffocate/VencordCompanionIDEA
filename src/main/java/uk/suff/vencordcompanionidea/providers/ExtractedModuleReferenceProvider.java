@@ -17,7 +17,7 @@ public class ExtractedModuleReferenceProvider extends PsiReferenceProvider{
 
 	@Override
 	public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context){
-		if(!element.getContainingFile().getName().endsWith(".js")) return PsiReference.EMPTY_ARRAY;
+		if(!element.getContainingFile().getName().matches("module\\d+\\.js")) return PsiReference.EMPTY_ARRAY;
 		System.out.println("ExtractedModuleReferenceProvider - checking: " + element.getContainingFile().getName());
 
 		if(element instanceof JSReferenceExpression jsRefExpr){

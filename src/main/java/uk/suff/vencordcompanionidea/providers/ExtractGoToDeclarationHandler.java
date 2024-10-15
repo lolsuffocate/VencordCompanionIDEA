@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class ExtractGoToDeclarationHandler implements GotoDeclarationHandler{
 	@Override
 	public PsiElement @Nullable [] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor){
-		if(sourceElement == null || sourceElement.getParent() == null || !sourceElement.getContainingFile().getName().endsWith(".js")){
+		if(sourceElement == null || sourceElement.getParent() == null || !sourceElement.getContainingFile().getName().matches("module\\d+\\.js")){
 			return null;
 		}
 
