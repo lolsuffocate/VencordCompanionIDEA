@@ -101,8 +101,8 @@ public class PatchDiffProvider implements DaemonBoundCodeVisionProvider{
 											   Utils.notify("VencordCompanion", json.getString("error"), NotificationType.ERROR);
 										   }else if(json.has("ok") && json.getBoolean("ok") && json.has("data")){
 											   JSONObject resData = json.getJSONObject("data");
-											   String originalContents = resData.getString("source").replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1(");
-											   String patchedContents = resData.getString("patched").replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1(");
+											   String originalContents = resData.getString("source");
+											   String patchedContents = resData.getString("patched");
 											   int moduleNum = json.getInt("moduleNumber");
 
 											   ApplicationKt.getApplication().invokeLater(()->{

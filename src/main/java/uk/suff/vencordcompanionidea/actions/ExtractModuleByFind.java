@@ -101,7 +101,6 @@ public class ExtractModuleByFind extends AnAction{
 								   if(jsonObject != null && jsonObject.has("data") && jsonObject.has("moduleNumber")){
 									   String moduleNumber = String.valueOf(jsonObject.getInt("moduleNumber"));
 									   String moduleStr = jsonObject.getString("data");
-									   moduleStr = moduleStr.replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1(");
 									   Utils.openFileInEditor(new LightVirtualFile("module" + moduleNumber + ".js", JavascriptLanguage.INSTANCE, moduleStr), TextRange.EMPTY_RANGE);
 								   }else{
 									   Utils.notify("Error", "Could not extract module with find: \"" + moduleIdField.getText() + "\"", NotificationType.ERROR);

@@ -56,7 +56,6 @@ public class ExtractedModuleReferenceProvider extends PsiReferenceProvider{
 												json = WebSocketServer.extractModuleById(moduleId).get();
 												if(json != null && json.has("data")){
 													String moduleStr = json.getString("data");
-													moduleStr = moduleStr.replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1("); // todo undo
 													PsiFile fileFromText = PsiFileFactory.getInstance(element.getProject()).createFileFromText("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, moduleStr);
 
 													ApplicationManager.getApplication().invokeLater(()->{

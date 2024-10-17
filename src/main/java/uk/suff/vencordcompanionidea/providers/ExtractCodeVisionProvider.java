@@ -101,7 +101,7 @@ public class ExtractCodeVisionProvider implements DaemonBoundCodeVisionProvider{
 											   });
 											   Utils.notify("VencordCompanion", json.getString("error"), NotificationType.ERROR);
 										   }else if(json.has("ok") && json.getBoolean("ok") && json.has("data")){
-											   String contents = json.getString("data").replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1(");
+											   String contents = json.getString("data");
 											   int moduleNum = json.getInt("moduleNumber");
 
 											   ApplicationKt.getApplication().invokeLater(()->{

@@ -67,7 +67,6 @@ public class ExtractModuleById extends AnAction{
 				WebSocketServer.extractModuleById(moduleId).thenAccept(jsonObject->{
 					if(jsonObject != null && jsonObject.has("data")){
 						String moduleStr = jsonObject.getString("data");
-						moduleStr = moduleStr.replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1(");
 						Utils.openFileInEditor(new LightVirtualFile("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, moduleStr), TextRange.EMPTY_RANGE);
 					}else{
 						Utils.notify("Error", "Could not extract module with ID: " + moduleId, NotificationType.ERROR);

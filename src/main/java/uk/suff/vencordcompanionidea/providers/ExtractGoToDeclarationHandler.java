@@ -49,7 +49,6 @@ public class ExtractGoToDeclarationHandler implements GotoDeclarationHandler{
 					if(jsonObject != null && jsonObject.has("data")){
 						// return the data
 						String moduleStr = jsonObject.getString("data");
-						moduleStr = moduleStr.replaceAll("\\(0,([^)]{1,7})\\)\\(", " $1(");
 						PsiFile fileFromText = PsiFileFactory.getInstance(sourceElement.getProject()).createFileFromText("module" + jsel.getText() + ".js", JavascriptLanguage.INSTANCE, moduleStr);
 
 						ApplicationManager.getApplication().invokeLater(()->{
