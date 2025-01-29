@@ -17,7 +17,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.*;
@@ -36,6 +36,10 @@ public class Utils{
 	public static Project project;
 	public static final Object lock = new Object();
 	public static boolean lockComplete = false;
+
+	public static boolean isCompanionConnected(){
+		return !WebSocketServer.sockets.isEmpty() && WebSocketServer.server != null && WebSocketServer.server.isRunning();
+	}
 
 	public static boolean isVencordProject(Project project){
 		return project != null && new File(project.getBasePath() + "/src/Vencord.ts").exists() && new File(project.getBasePath() + "/src/VencordNative.ts").exists();
@@ -330,8 +334,37 @@ public class Utils{
 		});
 	}
 
+	public static ErrorType getErrorType(String error){
+		if(error.contains("Expected exactly one 'find' matches, found 0")){
+			return ErrorType.FIND_NO_MATCH;
+		}else if(error.contains("Expected exactly one 'find' matches, found ")){
+			return ErrorType.FIND_MULTIPLE_MATCHES;
+		}else if(error.contains("no effect")){
+			return ErrorType.REPLACEMENT_NO_EFFECT;
+		}
+		return null;
+	}
+
+	public static int getErrorCount(String error){
+		try{
+			if(error.contains("Expected exactly one 'find' matches, found ")){
+				String[] parts = error.split(" ");
+				return Integer.parseInt(parts[parts.length - 1]);
+			}
+			return 0;
+		}catch(Exception e){
+			return -1;
+		}
+	}
+
 	public enum FindType{
 		STRING,
 		REGEX
+	}
+
+	public enum ErrorType{
+		FIND_NO_MATCH,
+		FIND_MULTIPLE_MATCHES,
+		REPLACEMENT_NO_EFFECT
 	}
 }

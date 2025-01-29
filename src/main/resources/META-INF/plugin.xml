@@ -55,6 +55,7 @@
                 implementation="uk.suff.vencordcompanionidea.providers.ExtractedModuleReferenceContributor"
                 language="JavaScript"/>
         <findInProjectSearchEngine implementation="uk.suff.vencordcompanionidea.providers.CustomFindInProject"/>
+        <annotator language="TypeScript" implementationClass="uk.suff.vencordcompanionidea.providers.PatchUnderliner"/>
     </extensions>
 
     <projectListeners>
