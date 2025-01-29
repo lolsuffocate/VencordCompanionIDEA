@@ -3,7 +3,9 @@ package uk.suff.vencordcompanionidea;
 import com.intellij.lang.javascript.JavascriptLanguage;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.components.JBLabel;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.*;
@@ -118,10 +120,11 @@ public class WebSocketServer{
 			JSONObject json = new JSONObject(message);
 
 			if(json.has("nonce")){
-				System.out.println("Received message with nonce: " + json.getString("nonce"));
-				if(callbacks.containsKey(json.getString("nonce"))){
-					callbacks.get(json.getString("nonce")).accept(json);
-					callbacks.remove(json.getString("nonce"));
+				String nonce = json.getString("nonce");
+				//System.out.println("Received message with nonce: " + nonce);
+				if(callbacks.containsKey(nonce)){
+					callbacks.get(nonce).accept(json);
+					callbacks.remove(nonce);
 				}
 			}else if(json.has("type") && json.getString("type").equals("report")){
 				Reporter.handleReporterResults(json);
@@ -185,7 +188,6 @@ public class WebSocketServer{
 									String module = json.getString("data");
 									PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(Utils.project);
 									PsiFile fileFromText = psiFileFactory.createFileFromText("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, module);
-
 									literallyEveryWebpackModule.put(moduleId, fileFromText);
 									cacheSizeBytes += module.getBytes().length;
 									if(component.length > 0){

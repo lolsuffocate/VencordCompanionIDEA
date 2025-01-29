@@ -69,7 +69,7 @@ public class ExtractCodeVisionProvider implements DaemonBoundCodeVisionProvider{
 	}
 
 	private void parsePatches(PsiElement element, ArrayList<Pair<TextRange, CodeVisionEntry>> lenses){
-		ArrayList<ParsedPatch> patches = ParsedPatch.fromElement(element);
+		ArrayList<ParsedPatch> patches = ParsedPatch.fromPatchesProperty(element);
 		if(patches.isEmpty()) return;
 
 		for(ParsedPatch patch : patches){
