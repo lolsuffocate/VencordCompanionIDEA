@@ -16,6 +16,10 @@ repositories {
     }
 }
 
+intellijPlatform.pluginVerification.ides{
+    ide("IU-2024.2.3")
+}
+
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
@@ -67,6 +71,7 @@ dependencies {
         intellijIdeaUltimate("2024.2.3")
         bundledPlugins("JavaScript")
         instrumentationTools()
+        pluginVerifier()
     }
 
 }

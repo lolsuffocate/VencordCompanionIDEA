@@ -83,6 +83,11 @@
                     text="Build Dev and Reload"
                     description="Build Vencord in dev mode and reload Discord"
                     icon="AllIcons.Actions.Rebuild"/>
+            <action id="BuildAndHardReload"
+                    class="uk.suff.vencordcompanionidea.actions.BuildDevAndHardReload"
+                    text="Build Dev and Hard Reload"
+                    description="Build Vencord in dev mode and hard reload Discord"
+                    icon="AllIcons.Actions.Rebuild"/>
             <action class="uk.suff.vencordcompanionidea.actions.ExtractModuleById"
                     id="ExtractModuleById"
                     text="Extract Module By ID"
