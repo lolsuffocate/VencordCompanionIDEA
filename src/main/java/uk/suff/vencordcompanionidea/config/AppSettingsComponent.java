@@ -1,6 +1,5 @@
 package uk.suff.vencordcompanionidea.config;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.progress.*;
 import com.intellij.psi.PsiFile;
@@ -8,15 +7,18 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.*;
 import com.intellij.util.ui.FormBuilder;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.suff.vencordcompanionidea.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.Queue;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Supports creating and managing a {@link JPanel} for the Settings Dialog.
@@ -73,6 +75,7 @@ public class AppSettingsComponent{
 						int processedFiles = 0;
 						long startTime = System.currentTimeMillis();
 
+
 						for(PsiFile psiFile : WebSocketServer.literallyEveryWebpackModule.values()){
 							if(indicator.isCanceled()){
 								break;
@@ -80,23 +83,9 @@ public class AppSettingsComponent{
 
 							updateIndicator(indicator, processedFiles, totalFiles, startTime, psiFile.getName());
 
-							AtomicBoolean done = new AtomicBoolean(false);
-
-							ApplicationManager.getApplication().invokeLater(()->{
-								WriteCommandAction.runWriteCommandAction(Utils.project, ()->{
-									CodeStyleManager.getInstance(Utils.project).reformat(psiFile);
-									System.out.println("Reformatted " + psiFile.getName());
-									done.set(true);
-								});
+							WriteCommandAction.runWriteCommandAction(Utils.project, ()->{
+								CodeStyleManager.getInstance(Utils.project).reformat(psiFile);
 							});
-
-							while(!done.get()){
-								try{
-									Thread.sleep(1);
-								}catch(InterruptedException e){
-									e.printStackTrace();
-								}
-							}
 
 							processedFiles++;
 						}
@@ -106,18 +95,90 @@ public class AppSettingsComponent{
 		}
 	});
 
+	private final JBLabel extractToLabel = new JBLabel("Dump cached files to: (relative to \"" + Paths.get("").toAbsolutePath().toString() + "\")");
+	private final JTextField extractToPath = new JTextField(AppSettings.extractToPath());
+
+	private final JButton extractToPathButton = new JButton(new AbstractAction("Dump"){
+		@Override
+		public void actionPerformed(ActionEvent e){
+			try{
+				String path = extractToPath.getText();
+				if(path.isEmpty()){
+					JOptionPane.showMessageDialog(myMainPanel, "Path cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+				File file = new File(path);
+				if(!file.exists()){
+					JOptionPane.showMessageDialog(myMainPanel, "Path does not exist", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+				if(!file.isDirectory()){
+					JOptionPane.showMessageDialog(myMainPanel, "Path is not a directory", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+				int confirm = JOptionPane.showConfirmDialog(myMainPanel, "This will delete everything in \"" + file.getAbsolutePath() + "\"", "Warning", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+
+				if(confirm != JOptionPane.OK_OPTION){
+					return;
+				}
+
+
+				ProgressManager.getInstance().run(new Task.Backgroundable(Utils.project, "Extracting and Formatting", true, Task.Backgroundable.DEAF){
+					@Override
+					public void run(@NotNull ProgressIndicator indicator){
+						// delete everything in the folder
+						try{
+							FileUtils.cleanDirectory(file);
+						}catch(IOException ex){
+							JOptionPane.showMessageDialog(myMainPanel, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+						indicator.setIndeterminate(false);
+						int totalFiles = WebSocketServer.literallyEveryWebpackModule.size();
+						int processedFiles = 0;
+						long startTime = System.currentTimeMillis();
+
+
+						for(PsiFile psiFile : WebSocketServer.literallyEveryWebpackModule.values()){
+							if(indicator.isCanceled()){
+								break;
+							}
+
+							updateIndicator(indicator, processedFiles, totalFiles, startTime, psiFile.getName());
+
+							File f = new File(file, psiFile.getName());
+							WriteCommandAction.runWriteCommandAction(Utils.project, ()->{
+								try{
+									FileUtils.writeStringToFile(f, psiFile.getText(), Charset.defaultCharset());
+								}catch(Exception ex){
+									ex.printStackTrace();
+								}
+							});
+							processedFiles++;
+						}
+					}
+				});
+			}catch(Exception ex){
+				JOptionPane.showMessageDialog(myMainPanel, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	});
+
 	private static final int AVERAGE_WINDOW_SIZE = 10; // Number of recent files to average
 	private final Queue<Long> recentProcessingTimes = new LinkedList<>();
 
-	private void updateIndicator(ProgressIndicator indicator, int processedFiles, int totalFiles, long startTime, String fileName) {
+	private void updateIndicator(ProgressIndicator indicator, int processedFiles, int totalFiles, long startTime, String fileName){
 		long currentTime = System.currentTimeMillis();
 		long elapsedTime = currentTime - startTime;
 
 		// Add the latest processing time to the queue
-		if (processedFiles > 0) {
+		if(processedFiles > 0){
 			long lastProcessingTime = elapsedTime / processedFiles;
 			recentProcessingTimes.add(lastProcessingTime);
-			if (recentProcessingTimes.size() > AVERAGE_WINDOW_SIZE) {
+			if(recentProcessingTimes.size() > AVERAGE_WINDOW_SIZE){
 				recentProcessingTimes.poll();
 			}
 		}
@@ -127,22 +188,22 @@ public class AppSettingsComponent{
 		long timeRemaining = averageProcessingTime * (totalFiles - processedFiles);
 
 		String timeRemainingStr = "Calculating...";
-		if (timeRemaining > 0) {
+		if(timeRemaining > 0){
 			int hours = (int) (timeRemaining / 3600000);
 			int minutes = (int) (timeRemaining % 3600000 / 60000);
 			int seconds = (int) (timeRemaining % 60000 / 1000);
 
-			if (hours > 0) {
+			if(hours > 0){
 				timeRemainingStr = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-			} else if (minutes > 0) {
+			}else if(minutes > 0){
 				timeRemainingStr = String.format("%02d:%02d", minutes, seconds);
-			} else {
+			}else{
 				timeRemainingStr = String.format("%02d", seconds);
 			}
 		}
 
 		indicator.setFraction((double) processedFiles / totalFiles);
-		indicator.setText(String.format("%0" + String.valueOf(totalFiles).length() + "d", processedFiles) + "/" + totalFiles + ": "+fileName);
+		indicator.setText(String.format("%0" + String.valueOf(totalFiles).length() + "d", processedFiles) + "/" + totalFiles + ": " + fileName);
 		indicator.setText2("Time remaining: " + timeRemainingStr);
 	}
 
@@ -165,6 +226,9 @@ public class AppSettingsComponent{
 								 .addComponent(refreshCachePanel, 1)
 								 .addComponent(clearCache, 1)
 								 .addComponent(formatCachedFiles, 1)
+								 .addComponent(extractToLabel, 1)
+								 .addComponent(extractToPath, 1)
+								 .addComponent(extractToPathButton, 0)
 								 .addComponentFillVertically(new JPanel(), 0)
 								 .getPanel();
 
@@ -218,6 +282,14 @@ public class AppSettingsComponent{
 
 	public void setDynamicPatches(boolean value){
 		dynamicPatches.setSelected(value);
+	}
+
+	public String getExtractToPath(){
+		return extractToPath.getText();
+	}
+
+	public void setExtractToPath(String value){
+		extractToPath.setText(value);
 	}
 
 	public JButton getRefreshCacheButton(){

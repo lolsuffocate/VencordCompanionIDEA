@@ -39,7 +39,8 @@ public final class AppSettingsConfigurable implements Configurable{
 		AppSettings.State state = Objects.requireNonNull(AppSettings.getInstance().getState());
 		return !mySettingsComponent.getReturnPatchedModuleByDefault() == state.applyPatchWhenExtractingByDefault ||
 				!mySettingsComponent.getCacheModulesOnConnection() == state.cacheModulesOnConnection ||
-			   !mySettingsComponent.getDynamicPatches() == state.dynamicPatches;
+			   !mySettingsComponent.getDynamicPatches() == state.dynamicPatches ||
+			   !mySettingsComponent.getExtractToPath().equals(state.extractToPath);
 	}
 
 	@Override
@@ -48,6 +49,7 @@ public final class AppSettingsConfigurable implements Configurable{
 		state.applyPatchWhenExtractingByDefault = mySettingsComponent.getReturnPatchedModuleByDefault();
 		state.cacheModulesOnConnection = mySettingsComponent.getCacheModulesOnConnection();
 		state.dynamicPatches = mySettingsComponent.getDynamicPatches();
+		state.extractToPath = mySettingsComponent.getExtractToPath();
 	}
 
 	@Override
@@ -56,6 +58,7 @@ public final class AppSettingsConfigurable implements Configurable{
 		mySettingsComponent.setReturnPatchedModuleByDefault(state.applyPatchWhenExtractingByDefault);
 		mySettingsComponent.setCacheModulesOnConnection(state.cacheModulesOnConnection);
 		mySettingsComponent.setDynamicPatches(state.dynamicPatches);
+		mySettingsComponent.setExtractToPath(state.extractToPath);
 	}
 
 	@Override

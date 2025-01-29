@@ -16,6 +16,7 @@ public final class AppSettings
 		public boolean applyPatchWhenExtractingByDefault = false;
 		public boolean cacheModulesOnConnection = false;
 		public boolean dynamicPatches = false;
+		public String extractToPath = "";
 	}
 
 	private State myState = new State();
@@ -38,6 +39,11 @@ public final class AppSettings
 	public static boolean dynamicPatches(){
 		State state = getInstance().getState();
 		return state != null && state.dynamicPatches;
+	}
+
+	public static String extractToPath(){
+		State state = getInstance().getState();
+		return state != null ? state.extractToPath : "";
 	}
 
 	@Override
