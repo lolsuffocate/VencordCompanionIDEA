@@ -139,7 +139,7 @@ public class Utils{
 			}).start();
 			return;
 		}
-		System.out.println("#### Searching for strings: " + Arrays.toString(searchStrings));
+
 		FindManager findManager = FindManager.getInstance(project);
 		FindModel findModel = new FindModel();
 		findModel.setCaseSensitive(true);
@@ -159,7 +159,6 @@ public class Utils{
 				return true;
 			}
 
-			System.out.println("#### Searching in file: " + psiFile.getName());
 			try{
 				VirtualFile file = psiFile.getVirtualFile();
 				if(file != null){
@@ -170,26 +169,22 @@ public class Utils{
 						if(searchString == null || searchString.isEmpty()){
 							continue;
 						}
-						System.out.println("\t#### Searching for string: " + searchString);
 						findModel.setStringToFind(searchString);
 						FindResult result = findManager.findString(fileContent, 0, findModel, file);
 						if(result.isStringFound()){
-							System.out.println("\t\t#### Found");
 							results.put(searchString, result);
 						}else{
-							System.out.println("\t\t#### Not found");
 							isInFile = false;
 							break;
 						}
 					}
 					if(isInFile){
-						System.out.println("#### Found all strings in file: " + file.getPath());
 						callback.invoke(psiFile, results);
 						return false;
 					}
 				}
 			}catch(IOException e){
-				e.printStackTrace();
+				Logs.error(e);
 			}
 			return true; // continue searching
 		});

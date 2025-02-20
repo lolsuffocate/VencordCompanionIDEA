@@ -15,14 +15,14 @@ public class StartStopWebSocketServer extends AnAction{
 				WebSocketServer.startWebSocketServer();
 				Utils.notify("Vencord Companion", "WebSocket server started", NotificationType.INFORMATION);
 			}catch(Exception ex){
-				ex.printStackTrace();
+				Logs.error(ex);
 			}
 		}else{
 			try{
 				WebSocketServer.stopWebSocketServer();
 				Utils.notify("Vencord Companion", "WebSocket server stopped", NotificationType.INFORMATION);
 			}catch(Exception ex){
-				ex.printStackTrace();
+				Logs.error(ex);
 			}
 		}
 	}

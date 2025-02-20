@@ -31,13 +31,13 @@ public class Startup implements ProjectActivity, DynamicPluginListener{
 		try{
 			WebSocketServer.startWebSocketServer();
 		}catch(Exception e){
-			e.printStackTrace();
+			Logs.error(e);
 		}
 
 		try{
-			System.out.println(PluginUtil.getInstance().findPluginId(new Throwable()));
+			Logs.info(PluginUtil.getInstance().findPluginId(new Throwable()));
 		}catch(Exception e){
-			e.printStackTrace();
+			Logs.error(e);
 		}
 
 		return null;
@@ -45,7 +45,7 @@ public class Startup implements ProjectActivity, DynamicPluginListener{
 
 	@Override
 	public void checkUnloadPlugin(@NotNull IdeaPluginDescriptor pluginDescriptor) throws CannotUnloadPluginException{
-		System.out.println("Unloading plugin: " + pluginDescriptor.getName());
+		Logs.info("Unloading plugin: " + pluginDescriptor.getName());
 		try{
 			WebSocketServer.stopWebSocketServer();
 		}catch(Exception e){

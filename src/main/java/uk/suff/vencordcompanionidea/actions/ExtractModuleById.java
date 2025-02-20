@@ -72,7 +72,7 @@ public class ExtractModuleById extends AnAction{
 						Utils.notify("Error", "Could not extract module with ID: " + moduleId, NotificationType.ERROR);
 					}
 				}).exceptionally(e1->{
-					e1.printStackTrace();
+					Logs.error(e1);
 					Utils.notify("Error", "An error occurred while extracting module with ID: " + moduleId, NotificationType.ERROR);
 					return null;
 				});

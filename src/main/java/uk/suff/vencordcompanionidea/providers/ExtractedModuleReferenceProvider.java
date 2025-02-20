@@ -6,10 +6,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
-import uk.suff.vencordcompanionidea.WebSocketServer;
+import uk.suff.vencordcompanionidea.*;
 
 import java.util.concurrent.ExecutionException;
 
@@ -55,7 +56,14 @@ public class ExtractedModuleReferenceProvider extends PsiReferenceProvider{
 												json = WebSocketServer.extractModuleById(moduleId).get();
 												if(json != null && json.has("data")){
 													String moduleStr = json.getString("data");
-													PsiFile fileFromText = PsiFileFactory.getInstance(element.getProject()).createFileFromText("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, moduleStr);
+													// PsiFile fileFromText = PsiFileFactory.getInstance(element.getProject()).createFileFromText("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, moduleStr);
+													LightVirtualFile virtualFile = new LightVirtualFile("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, moduleStr);
+													PsiFile fileFromText = PsiManager.getInstance(Utils.project).findFile(virtualFile);
+
+													if(fileFromText == null){
+														Logs.error("Couldn't create PsiFile for module " + moduleId);
+														return PsiReference.EMPTY_ARRAY;
+													}
 
 													ApplicationManager.getApplication().invokeLater(()->{
 														WriteCommandAction.runWriteCommandAction(element.getProject(), ()->{
@@ -66,7 +74,7 @@ public class ExtractedModuleReferenceProvider extends PsiReferenceProvider{
 													WebSocketServer.literallyEveryWebpackModule.put(moduleId, fileFromText);
 												}
 											}catch(InterruptedException | ExecutionException e){
-												e.printStackTrace();
+												Logs.error(e);
 											}
 										}
 									}
@@ -94,7 +102,6 @@ public class ExtractedModuleReferenceProvider extends PsiReferenceProvider{
 		String exportsName = null;
 
 		int i = 0;
-		System.out.println("'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''");
 		for(PsiElement element : traverser.preOrderDfsTraversal()){
 			if(requireName == null && exportsName == null){
 				if(element instanceof JSFunction function){

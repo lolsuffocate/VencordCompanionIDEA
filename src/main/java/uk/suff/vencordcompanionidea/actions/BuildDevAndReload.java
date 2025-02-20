@@ -24,6 +24,7 @@ public class BuildDevAndReload extends AnAction{
 			@Override
 			public void run(@NotNull ProgressIndicator indicator){
 				indicator.checkCanceled();
+				indicator.setIndeterminate(false);
 				indicator.setText("Building dev build");
 				indicator.setFraction(0.5);
 				ProcessBuilder devProcessBuilder = new ProcessBuilder("pnpm", "build", "--dev");
@@ -47,14 +48,14 @@ public class BuildDevAndReload extends AnAction{
 					});
 				}catch(Exception e){
 					Utils.notify("Error running dev build", e.getMessage(), NotificationType.ERROR);
-					e.printStackTrace();
+					Logs.error(e);
 				}
 			}
 
 			@Override
 			public void onThrowable(@NotNull Throwable error){
 				Utils.notify("Error running dev build", error.getMessage(), NotificationType.ERROR);
-				error.printStackTrace();
+				Logs.error(error);
 			}
 		}.queue();
 	}

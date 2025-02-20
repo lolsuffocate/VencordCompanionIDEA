@@ -11,7 +11,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.*;
 import org.json.JSONObject;
-import uk.suff.vencordcompanionidea.WebSocketServer;
+import uk.suff.vencordcompanionidea.*;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -24,7 +24,7 @@ public class ExtractGoToDeclarationHandler implements GotoDeclarationHandler{
 
 		if((sourceElement.getParent() instanceof JSLiteralExpression jsel) && (jsel.getExpressionKind(false).isNumeric())){
 			if(WebSocketServer.literallyEveryWebpackModule.containsKey(Integer.parseInt(jsel.getText()))){
-				System.out.println("Retrieving module: " + jsel.getText());
+				Logs.info("Retrieving module: " + jsel.getText());
 				PsiFile fileFromText = WebSocketServer.literallyEveryWebpackModule.get(Integer.parseInt(jsel.getText()));
 				// reformat the file
 				ApplicationManager.getApplication().invokeLater(()->{
@@ -35,7 +35,7 @@ public class ExtractGoToDeclarationHandler implements GotoDeclarationHandler{
 
 				return new PsiElement[]{fileFromText};
 			}else{
-				System.out.println("Extracting module: " + jsel.getText());
+				Logs.info("Extracting module: " + jsel.getText());
 				int moduleId;
 				try{
 					moduleId = Integer.parseInt(jsel.getText());
@@ -60,7 +60,7 @@ public class ExtractGoToDeclarationHandler implements GotoDeclarationHandler{
 						return new PsiElement[]{fileFromText};
 					}
 				}catch(Exception e){
-					e.printStackTrace();
+					Logs.error(e);
 				}
 			}
 		}

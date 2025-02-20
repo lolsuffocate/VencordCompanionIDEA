@@ -106,7 +106,7 @@ public class ExtractModuleByFind extends AnAction{
 									   Utils.notify("Error", "Could not extract module with find: \"" + moduleIdField.getText() + "\"", NotificationType.ERROR);
 								   }
 							   }).exceptionally(e1->{
-								   e1.printStackTrace();
+								   Logs.error(e1);
 								   Utils.notify("Error", "An error occurred while extracting module with find: \"" + moduleIdField.getText() + "\"", NotificationType.ERROR);
 								   return null;
 							   });

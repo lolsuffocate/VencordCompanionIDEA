@@ -46,7 +46,7 @@ public class AppSettingsComponent{
 	private final JButton clearCache = new JButton(new AbstractAction("Clear Cache"){
 		@Override
 		public void actionPerformed(ActionEvent e){
-			System.out.println("Clearing cache");
+			Logs.info("Clearing cache");
 			WebSocketServer.clearCache();
 			cachedModulesCount.setText(WebSocketServer.getCachedInfo());
 		}
@@ -154,7 +154,7 @@ public class AppSettingsComponent{
 								try{
 									FileUtils.writeStringToFile(f, psiFile.getText(), Charset.defaultCharset());
 								}catch(Exception ex){
-									ex.printStackTrace();
+									Logs.error(ex);
 								}
 							});
 							processedFiles++;

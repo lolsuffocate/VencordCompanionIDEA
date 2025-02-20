@@ -3,7 +3,8 @@ package uk.suff.vencordcompanionidea;
 import com.intellij.lang.javascript.JavascriptLanguage;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.ex.temp.TempFileSystem;
 import com.intellij.psi.*;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.components.JBLabel;
@@ -35,7 +36,7 @@ public class WebSocketServer{
 
 	public static void startWebSocketServer() throws Exception{
 		if(server != null && !server.isStopped()){
-			System.out.println("Server already running");
+			Logs.info("Server already running");
 			return;
 		}else if(server == null){
 			initServer();
@@ -50,14 +51,14 @@ public class WebSocketServer{
 				server.start();
 				server.join();
 			}catch(Exception e){
-				e.printStackTrace();
+				Logs.error(e);
 				if(e instanceof IOException){
 					Utils.notify("Port already in use", "Port " + port + " is already in use. Please close the other application using this port and try again", NotificationType.ERROR);
 					if(server != null){
 						try{
 							server.stop();
 						}catch(Exception ex){
-							ex.printStackTrace();
+							Logs.error(ex);
 						}
 					}
 					server = null;
@@ -67,7 +68,7 @@ public class WebSocketServer{
 	}
 
 	public static void initServer() throws Exception{
-		System.out.println("Starting websocketserver");
+		Logs.info("Starting websocketserver");
 		server = new Server(port);
 		ServerConnector connector = new ServerConnector(server);
 		server.addConnector(connector);
@@ -92,7 +93,7 @@ public class WebSocketServer{
 	}
 
 	public static void stopWebSocketServer() throws Exception{
-		System.out.println("Stopping websocketserver");
+		Logs.info("Stopping websocketserver");
 		server.stop();
 	}
 
@@ -101,7 +102,7 @@ public class WebSocketServer{
 		session.setMaxTextMessageSize(Integer.MAX_VALUE);
 		session.setIdleTimeout(Duration.ofMinutes(60));
 
-		System.out.println("Connected to: " + session.getRemoteAddress());
+		Logs.info("Connected to: " + session.getRemoteAddress());
 
 		this.session = session;
 		sockets.add(this);
@@ -121,7 +122,6 @@ public class WebSocketServer{
 
 			if(json.has("nonce")){
 				String nonce = json.getString("nonce");
-				//System.out.println("Received message with nonce: " + nonce);
 				if(callbacks.containsKey(nonce)){
 					callbacks.get(nonce).accept(json);
 					callbacks.remove(nonce);
@@ -134,30 +134,30 @@ public class WebSocketServer{
 				for(int i = 0; i < modules.length(); i++){
 					moduleList.add(modules.getInt(i));
 				}
-				System.out.println("Received module list: " + moduleList.size() + " modules");
+				Logs.info("Received module list: " + moduleList.size() + " modules");
 				// this has to be awful
 				if(AppSettings.cacheModulesOnConnection()){
 					refreshCache();
 				}
 			}else{
-				System.out.println("Received unknown message: " + message);
+				Logs.info("Received unknown message: " + message);
 			}
 		}catch(Exception e){
-			System.out.println("Error parsing message: " + message);
-			e.printStackTrace();
+			Logs.info("Error parsing message: " + message);
+			Logs.error(e);
 		}
 	}
 
 	@OnWebSocketClose
 	public void onClose(int statusCode, String reason){
-		System.out.println("Closed: " + statusCode + " - " + reason);
+		Logs.info("Closed: " + statusCode + " - " + reason);
 		Utils.notify("Disconnected from Companion", "Disconnected from Companion", NotificationType.INFORMATION);
 		sockets.remove(this);
 	}
 
 	@OnWebSocketError
 	public void onError(Throwable t){
-		t.printStackTrace();
+		Logs.error(t);
 	}
 
 	public static void sendToSockets(JSONObject json){
@@ -169,7 +169,7 @@ public class WebSocketServer{
 			try{
 				if(socket.session.isOpen()) socket.session.getRemote().sendString(json.toString());
 			}catch(IOException e){
-				e.printStackTrace();
+				Logs.error(e);
 			}
 		});
 	}
@@ -178,7 +178,7 @@ public class WebSocketServer{
 	public static void refreshCache(JBLabel... component){
 		literallyEveryWebpackModule = new HashMap<>();
 		cacheSizeBytes = 0;
-		System.out.println("Modules: " + moduleList.size());
+		Logs.info("Modules: " + moduleList.size());
 		for(int moduleId : moduleList){
 			extractModuleById(moduleId)
 					.thenAccept(json->{
@@ -186,8 +186,24 @@ public class WebSocketServer{
 							ApplicationManager.getApplication().runReadAction(()->{
 								try{
 									String module = json.getString("data");
-									PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(Utils.project);
-									PsiFile fileFromText = psiFileFactory.createFileFromText("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, module);
+									// PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(Utils.project);
+									// PsiFile fileFromText = psiFileFactory.createFileFromText("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, module);
+
+									// testing indexing psi structure of cached modules, will probably go back
+									LightVirtualFile virtualFile = new LightVirtualFile("module" + moduleId + ".js", JavascriptLanguage.INSTANCE, module);
+									PsiFile fileFromText = PsiManager.getInstance(Utils.project).findFile(virtualFile);
+
+
+									if(moduleId == moduleList.getLast()){
+										Logs.info("Refreshing Virtual File System after last module: " + moduleId);
+										VirtualFileManager.getInstance().asyncRefresh();
+									}
+
+									if(fileFromText == null){
+										Logs.error("Couldn't create PsiFile for module " + moduleId);
+										return;
+									}
+
 									literallyEveryWebpackModule.put(moduleId, fileFromText);
 									cacheSizeBytes += module.getBytes().length;
 									if(component.length > 0){
@@ -195,7 +211,7 @@ public class WebSocketServer{
 									}
 
 								}catch(Exception e){
-									e.printStackTrace();
+									Logs.error(e);
 								}
 							});
 						}
@@ -231,7 +247,7 @@ public class WebSocketServer{
 					socket.session.getRemote().sendString(json.toString());
 				}
 			}catch(IOException e){
-				e.printStackTrace();
+				Logs.error(e);
 			}
 		});
 

@@ -82,6 +82,7 @@ public class Reporter extends AnAction{
 			@Override
 			public void run(@NotNull ProgressIndicator indicator){
 				indicator.checkCanceled();
+				indicator.setIndeterminate(false);
 				// run shell command in vencord dir - pnpm build --dev --reporter --companion-test
 				runningTasks.add(this);
 				indicator.setText("Building reporter build");
@@ -92,7 +93,7 @@ public class Reporter extends AnAction{
 				reporterProcessBuilder.directory(new File(project.getBasePath()));
 				indicator.checkCanceled();
 				try{
-					System.out.println("############# Running reporter");
+					Logs.info("############# Running reporter");
 					Utils.lockComplete = false;
 					synchronized(Utils.lock){
 						Utils.runProcessInRunWindow(project, reporterProcessBuilder, getTitle());
@@ -104,7 +105,7 @@ public class Reporter extends AnAction{
 					}
 				}catch(Exception e){
 					Utils.notify("Error running reporter", e.getMessage(), NotificationType.ERROR);
-					e.printStackTrace();
+					Logs.error(e);
 					running = false;
 					runningTasks.remove(this);
 					return;
@@ -125,7 +126,7 @@ public class Reporter extends AnAction{
 							indicator.checkCanceled();
 						}
 					}catch(InterruptedException e){
-						e.printStackTrace();
+						Logs.error(e);
 					}
 				}
 				indicator.checkCanceled();
@@ -136,7 +137,7 @@ public class Reporter extends AnAction{
 				devProcessBuilder.directory(new File(project.getBasePath()));
 				indicator.checkCanceled();
 				try{
-					System.out.println("############# Running dev");
+					Logs.info("############# Running dev");
 					/*Process process = processBuilder.start();
 					process.waitFor();*/
 					Utils.lockComplete = false;
@@ -150,7 +151,7 @@ public class Reporter extends AnAction{
 					}
 				}catch(Exception e){
 					Utils.notify("Error running reporter", e.getMessage(), NotificationType.ERROR);
-					e.printStackTrace();
+					Logs.error(e);
 					running = false;
 					runningTasks.remove(this);
 					return;
@@ -174,7 +175,7 @@ public class Reporter extends AnAction{
 			@Override
 			public void onThrowable(@NotNull Throwable error){
 				Utils.notify("Error running reporter", error.getMessage(), NotificationType.ERROR);
-				error.printStackTrace();
+				Logs.error(error);
 				running = false;
 				runningTasks.remove(this);
 			}
@@ -351,14 +352,13 @@ public class Reporter extends AnAction{
 				}
 			}
 
-			System.out.println("Checking for plugin: " + patchPlugin);
+			Logs.info("Checking for plugin: " + patchPlugin);
 
 			//Utils.findStringInAllFiles(Utils.project, patchMatch.equals("") ? patchFind.equals("") ? patchPlugin : patchFind : patchMatch);
 			String finalPatchFind = patchFind;
 			String finalPatchReplace = patchReplace;
 			String finalPatchMatch = patchMatch;
 			Utils.findAllStringsInAllFiles(Utils.project, (psiFile, results)->{ // seems to work okay
-				System.out.println("Found file: " + psiFile.getName());
 				String strToFind = patchPlugin;
 				if(title.startsWith("Found No Module")){
 					// if this is a patch where the module couldn't be found, the "find" is the culprit, so go to that
@@ -371,7 +371,7 @@ public class Reporter extends AnAction{
 				}
 				TextRange range = results.get(strToFind);
 				if(range == null){
-					System.out.println("Couldn't find range for: " + strToFind);
+					Logs.info("Couldn't find range for: " + strToFind);
 					range = results.get(results.keySet().iterator().next());
 				}
 				Utils.openFileInEditor(psiFile.getVirtualFile(), range);

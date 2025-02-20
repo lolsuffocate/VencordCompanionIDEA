@@ -96,7 +96,7 @@ public class ExtractCodeVisionProvider implements DaemonBoundCodeVisionProvider{
 												   try{
 													   HintManager.getInstance().showErrorHint(editor, json.getString("error"), finalLineStart, range.getEndOffset(), HintManager.RIGHT, HintManager.HIDE_BY_TEXT_CHANGE, 5000);
 												   }catch(JSONException e){
-													   e.printStackTrace();
+													   Logs.error(e);
 												   }
 											   });
 											   Utils.notify("VencordCompanion", json.getString("error"), NotificationType.ERROR);
@@ -110,11 +110,11 @@ public class ExtractCodeVisionProvider implements DaemonBoundCodeVisionProvider{
 										   }
 
 									   }catch(JSONException e){
-										   e.printStackTrace();
+										   Logs.error(e);
 									   }
 								   });
 				}catch(Exception e){
-					e.printStackTrace();
+					Logs.error(e);
 				}
 			}, null, patchEntryText, "", Collections.emptyList());
 			viewModuleEntry.setShowInMorePopup(false);
@@ -146,7 +146,7 @@ public class ExtractCodeVisionProvider implements DaemonBoundCodeVisionProvider{
 											   try{
 												   HintManager.getInstance().showErrorHint(editor, json.getString("error"), finalLineStart, range.getEndOffset(), HintManager.RIGHT, HintManager.HIDE_BY_TEXT_CHANGE, 5000);
 											   }catch(JSONException e){
-												   e.printStackTrace();
+												   Logs.error(e);
 											   }
 										   });
 										   Utils.notify("VencordCompanion", json.getString("error"), NotificationType.ERROR);
@@ -160,11 +160,11 @@ public class ExtractCodeVisionProvider implements DaemonBoundCodeVisionProvider{
 									   }
 
 								   }catch(JSONException e){
-									   e.printStackTrace();
+									   Logs.error(e);
 								   }
 							   });
 			}catch(Exception e){
-				e.printStackTrace();
+				Logs.error(e);
 			}
 		}, null, viewModuleEntryText, "", Collections.emptyList());
 		viewModuleEntry.setShowInMorePopup(false);

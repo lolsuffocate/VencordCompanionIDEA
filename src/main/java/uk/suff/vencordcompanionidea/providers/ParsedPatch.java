@@ -4,10 +4,11 @@ import com.intellij.codeInsight.hints.InlayHintsUtils;
 import com.intellij.lang.javascript.psi.*;
 import com.intellij.lang.javascript.psi.impl.JSArrayLiteralExpressionImpl;
 import com.intellij.lang.javascript.psi.types.primitives.JSStringType;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import org.json.*;
-import uk.suff.vencordcompanionidea.Utils;
+import uk.suff.vencordcompanionidea.*;
 import uk.suff.vencordcompanionidea.config.AppSettings;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class ParsedPatch{
 	private TextRange range;
 	private boolean isPatchable = true; // if the replacement is a function, it is not locally patchable since we're not in TS in this plugin, plus could have side effects
 	private String pluginName = null;
+	private boolean findAll = false; // if the patch is intended to find all matches, don't error when it's not unique
 	private TextRange findRange;
 	public JSProperty findObject;
 	private TextRange replacementRange;
@@ -38,7 +40,16 @@ public class ParsedPatch{
 	}
 
 	public ParsedPatch setPluginName(String pluginName){
-		this.pluginName = pluginName;
+		this.pluginName = "Vencord.Plugins.plugins[\""+pluginName+"\"]";
+		return this;
+	}
+
+	public boolean isFindAll(){
+		return findAll;
+	}
+
+	public ParsedPatch setFindAll(boolean findAll){
+		this.findAll = findAll;
 		return this;
 	}
 
@@ -158,302 +169,337 @@ public class ParsedPatch{
 
 	// todo: tidy this mess
 	public static ArrayList<ParsedPatch> fromPatchesProperty(PsiElement element){
-		ArrayList<ParsedPatch> patches = new ArrayList<>();
+		try{
+			ArrayList<ParsedPatch> patches = new ArrayList<>();
 
-		// check if this is a JSProperty
-		if(!(element instanceof JSProperty jsProperty)) return patches;
+			// check if this is a JSProperty
+			if(!(element instanceof JSProperty jsProperty)) return patches;
 
-		// check if the property name is "patches"
-		if(!"patches".equals(jsProperty.getName())) return patches;
+			// check if the property name is "patches"
+			if(!"patches".equals(jsProperty.getName())) return patches;
 
-		// check if the value of the property is an array
-		if(!(jsProperty.getValue() instanceof JSArrayLiteralExpression patchesArray)) return patches;
+			// check if the value of the property is an array
+			if(!(jsProperty.getValue() instanceof JSArrayLiteralExpression patchesArray)) return patches;
 
-		// iterate through the elements of the array
-		for(JSExpression expression : patchesArray.getExpressions()){
-			ParsedPatch parsedPatch = fromPatchObject(expression);
-			if(parsedPatch != null) patches.add(parsedPatch);
+			// iterate through the elements of the array
+			for(JSExpression expression : patchesArray.getExpressions()){
+				ParsedPatch parsedPatch = fromPatchObject(expression);
+				if(parsedPatch != null) patches.add(parsedPatch);
 
-			try{
-				// get the plugin name
-				PsiElement parent = element.getParent();
-				if(parent instanceof JSObjectLiteralExpression parentObject){
-					JSProperty pluginProperty = parentObject.findProperty("name");
-					if(pluginProperty != null && pluginProperty.getValue() instanceof JSLiteralExpression pluginLiteral){
-						patches.forEach(patch->patch.setPluginName(pluginLiteral.getStringValue()));
+				try{
+					// get the plugin name
+					PsiElement parent = element.getParent();
+					if(parent instanceof JSObjectLiteralExpression parentObject){
+						JSProperty pluginProperty = parentObject.findProperty("name");
+						if(pluginProperty != null && pluginProperty.getValue() instanceof JSLiteralExpression pluginLiteral){
+							patches.forEach(patch->patch.setPluginName(pluginLiteral.getStringValue()));
+						}
 					}
+				}catch(Exception e){
+					Logs.error(e);
 				}
-			}catch(Exception e){
-				e.printStackTrace();
 			}
-		}
 
-		return patches;
+			return patches;
+		}catch(Exception e){
+			Logs.error(e);
+			return new ArrayList<>();
+		}
 	}
 
 	public static ParsedPatch fromPatchObject(PsiElement element){
-		ParsedPatch parsedPatch = new ParsedPatch();
+		try{
+			ParsedPatch parsedPatch = new ParsedPatch();
 
-		// check if the element is an object
-		if(!(element instanceof JSObjectLiteralExpression patchObject)) return null;
+			// check if the element is an object
+			if(!(element instanceof JSObjectLiteralExpression patchObject)) return null;
 
-		// check if the object has a property named "find"
-		if(patchObject.findProperty("find") == null) return null;
+			// check if the object has a property named "find"
+			if(patchObject.findProperty("find") == null) return null;
 
-		// check if the object has a property named "replacement"
-		if(patchObject.findProperty("replacement") == null) return null;
+			// check if the object has a property named "replacement"
+			if(patchObject.findProperty("replacement") == null) return null;
 
-		// get the value of the "find" property
-		JSProperty findProperty = patchObject.findProperty("find");
-		if(findProperty == null) return null;
-		if(!(findProperty.getValue() instanceof JSLiteralExpression findLiteral)) return null;
+			// get the value of the "find" property
+			JSProperty findProperty = patchObject.findProperty("find");
+			if(findProperty == null) return null;
+			if(!(findProperty.getValue() instanceof JSLiteralExpression findLiteral)) return null;
 
-		// check if the "find" property is a string or a regex
-		if(!(findLiteral.isRegExpLiteral() || findLiteral.isQuotedLiteral())) return null;
-
-		// get the value of the "replacement" property
-		JSProperty replacementProperty = patchObject.findProperty("replacement");
-		if(replacementProperty == null) return null;
-
-		// check if the "replacement" property is an object or an array
-		if(!(replacementProperty.getValue() instanceof JSObjectLiteralExpression || replacementProperty.getValue() instanceof JSArrayLiteralExpression))
-			return null;
-
-		ArrayList<JSObjectLiteralExpression> replacementArray = new ArrayList<>();
-		// if the "replacement" property is not an array, convert it to one
-		if(replacementProperty.getValue() instanceof JSObjectLiteralExpression replacementObject){
-			replacementArray.add(replacementObject);
-		}else{
-			for(JSExpression replacementExpression : ((JSArrayLiteralExpressionImpl) replacementProperty.getValue()).getExpressions()){
-				if(replacementExpression instanceof JSObjectLiteralExpression replacementObject){
-					replacementArray.add(replacementObject);
+			// get "all" if it exists
+			JSProperty allProperty = patchObject.findProperty("all");
+			if(allProperty != null && allProperty.getValue() instanceof JSLiteralExpression allLiteral){
+				if(allLiteral.isBooleanLiteral()){
+					parsedPatch.setFindAll(Boolean.parseBoolean(allLiteral.getText()));
 				}
 			}
-		}
 
-		if(replacementArray.isEmpty()) return null;
+			// check if the "find" property is a string or a regex
+			if(!(findLiteral.isRegExpLiteral() || findLiteral.isQuotedLiteral())) return null;
 
-		// iterate through the elements of the replacement array
-		for(JSObjectLiteralExpression replacementObject : replacementArray){
-			// get the value of the "match" property
-			JSProperty matchProperty = replacementObject.findProperty("match");
-			if(matchProperty == null) return null;
+			// get the value of the "replacement" property
+			JSProperty replacementProperty = patchObject.findProperty("replacement");
+			if(replacementProperty == null) return null;
 
-			// check if the "match" property is a string or a regex
-			if(!(matchProperty.getValue() instanceof JSLiteralExpression matchLiteral)) return null;
-			if(!(matchLiteral.isRegExpLiteral() || matchLiteral.isQuotedLiteral())) return null;
-
-			// get the value of the "replace" property
-			JSProperty replaceProperty = replacementObject.findProperty("replace");
-			if(replaceProperty == null) return null;
-
-			// check if the "replace" property is a string or a function
-			if(!(replaceProperty.getValue() instanceof JSLiteralExpression ||
-				 replaceProperty.getValue() instanceof JSFunctionExpression ||
-				 replaceProperty.getValue() instanceof JSReferenceExpression
-			))
+			// check if the "replacement" property is an object or an array
+			if(!(replacementProperty.getValue() instanceof JSObjectLiteralExpression || replacementProperty.getValue() instanceof JSArrayLiteralExpression))
 				return null;
 
-
-			String replaceString = "";
-			String replaceType = "string";
-
-			// if the "replace" property is a string, check if it is a string
-			if(replaceProperty.getValue() instanceof JSLiteralExpression replaceLiteral){
-				if(!replaceLiteral.isQuotedLiteral()) return null;
-				replaceString = replaceLiteral.getStringValue();
-			}else if(replaceProperty.getValue() instanceof JSFunctionExpression replaceFnExp){
-				String parameterList = replaceFnExp.getParameterList().getText();
-				JSBlockStatement block = replaceFnExp.getBlock();
-				if(block != null){
-					String body = block.getText();
-					replaceString = parameterList + " => " + body;
-				}else{
-					// function body is a single line expression
-					replaceString = replaceFnExp.getText();
-				}
-				replaceType = "function";
-				parsedPatch.isPatchable = true;
+			ArrayList<JSObjectLiteralExpression> replacementArray = new ArrayList<>();
+			// if the "replacement" property is not an array, convert it to one
+			if(replacementProperty.getValue() instanceof JSObjectLiteralExpression replacementObject){
+				replacementArray.add(replacementObject);
 			}else{
-				JSFunction replaceFn = null;
-				replaceType = "function";
-				replaceString = "";
-				parsedPatch.isPatchable = false;
-				// if the "replace" property is a function reference, resolve the function
-				if(replaceProperty.getValue() instanceof JSReferenceExpression replaceFnRef){
-					PsiReference reference = replaceFnRef.getReference();
-					if(reference == null) return null;
-					PsiElement resolve = reference.resolve();
-					if(resolve == null) return null;
-					if(resolve instanceof JSFunction replaceJsFn){
-						String parameterList = replaceJsFn.getParameterList().getText();
-						String body = replaceJsFn.getBlock().getText();
+				for(JSExpression replacementExpression : ((JSArrayLiteralExpressionImpl) replacementProperty.getValue()).getExpressions()){
+					if(replacementExpression instanceof JSObjectLiteralExpression replacementObject){
+						replacementArray.add(replacementObject);
+					}
+				}
+			}
+
+			if(replacementArray.isEmpty()) return null;
+
+			// iterate through the elements of the replacement array
+			for(JSObjectLiteralExpression replacementObject : replacementArray){
+				// get the value of the "match" property
+				JSProperty matchProperty = replacementObject.findProperty("match");
+				if(matchProperty == null) return null;
+
+				// check if the "match" property is a string or a regex
+				if(!(matchProperty.getValue() instanceof JSLiteralExpression matchLiteral)) return null;
+				if(!(matchLiteral.isRegExpLiteral() || matchLiteral.isQuotedLiteral())) return null;
+
+				// get the value of the "replace" property
+				JSProperty replaceProperty = replacementObject.findProperty("replace");
+				if(replaceProperty == null) return null;
+
+				// check if the "replace" property is a string or a function
+				if(!(replaceProperty.getValue() instanceof JSLiteralExpression ||
+					 replaceProperty.getValue() instanceof JSFunctionExpression ||
+					 replaceProperty.getValue() instanceof JSReferenceExpression
+				))
+					return null;
+
+
+				String replaceString = "";
+				String replaceType = "string";
+
+				// if the "replace" property is a string, check if it is a string
+				if(replaceProperty.getValue() instanceof JSLiteralExpression replaceLiteral){
+					if(!replaceLiteral.isQuotedLiteral()) return null;
+					replaceString = replaceLiteral.getStringValue();
+				}else if(replaceProperty.getValue() instanceof JSFunctionExpression replaceFnExp){
+					String parameterList = replaceFnExp.getParameterList().getText();
+					JSBlockStatement block = replaceFnExp.getBlock();
+					if(block != null){
+						String body = block.getText();
 						replaceString = parameterList + " => " + body;
-						parsedPatch.isPatchable = true;
-					}else if(resolve instanceof JSVariable replaceJsVar){
-						JSVarStatement statement = replaceJsVar.getStatement();
-						if(statement != null){
-							JSVariable[] variables = statement.getVariables();
-							if(variables.length == 1){
-								JSVariable variable = variables[0];
-								if(variable.getInitializer() != null && variable.getInitializer() instanceof JSFunctionExpression replaceFnExp){
-									String parameterList = replaceFnExp.getParameterList().getText();
-									String body = replaceFnExp.getBlock().getText();
-									replaceString = parameterList + " => " + body;
-									parsedPatch.isPatchable = true;
+					}else{
+						// function body is a single line expression
+						replaceString = replaceFnExp.getText();
+					}
+					replaceType = "function";
+					parsedPatch.isPatchable = true;
+				}else{
+					JSFunction replaceFn = null;
+					replaceType = "function";
+					replaceString = "";
+					parsedPatch.isPatchable = false;
+					// if the "replace" property is a function reference, resolve the function
+					if(replaceProperty.getValue() instanceof JSReferenceExpression replaceFnRef){
+						PsiReference reference = replaceFnRef.getReference();
+						if(reference == null) return null;
+						PsiElement resolve = reference.resolve();
+						if(resolve == null) return null;
+						if(resolve instanceof JSFunction replaceJsFn){
+							String parameterList = replaceJsFn.getParameterList().getText();
+							String body = replaceJsFn.getBlock().getText();
+							replaceString = parameterList + " => " + body;
+							parsedPatch.isPatchable = true;
+						}else if(resolve instanceof JSVariable replaceJsVar){
+							JSVarStatement statement = replaceJsVar.getStatement();
+							if(statement != null){
+								JSVariable[] variables = statement.getVariables();
+								if(variables.length == 1){
+									JSVariable variable = variables[0];
+									if(variable.getInitializer() != null && variable.getInitializer() instanceof JSFunctionExpression replaceFnExp){
+										String parameterList = replaceFnExp.getParameterList().getText();
+										String body = replaceFnExp.getBlock().getText();
+										replaceString = parameterList + " => " + body;
+										parsedPatch.isPatchable = true;
+									}
 								}
 							}
 						}
+					}else if(replaceProperty.getValue() instanceof JSFunctionExpression replaceFnExp){
+						replaceFn = replaceFnExp;
 					}
-				}else if(replaceProperty.getValue() instanceof JSFunctionExpression replaceFnExp){
-					replaceFn = replaceFnExp;
+
+					// check if the function is a valid replace function (match: string, ...groups: string[]) => string;
+					if(replaceFn != null && replaceFn.getReturnType() != null && replaceFn.getReturnType() instanceof JSStringType){
+						JSParameterList parameterList = replaceFn.getParameterList();
+						if(parameterList != null){
+							replaceString = replaceFn.getText();
+							parsedPatch.isPatchable = true;
+						}
+					}
 				}
 
-				// check if the function is a valid replace function (match: string, ...groups: string[]) => string;
-				if(replaceFn != null && replaceFn.getReturnType() != null && replaceFn.getReturnType() instanceof JSStringType){
-					JSParameterList parameterList = replaceFn.getParameterList();
-					if(parameterList != null){
-						replaceString = replaceFn.getText();
-						parsedPatch.isPatchable = true;
-					}
+				String matchString = matchLiteral.getStringValue();
+				String matchFlags = "";
+				String matchType = "string";
+				if(matchLiteral.isRegExpLiteral()){
+					String regexString = matchLiteral.getText();
+					int start = regexString.indexOf("/") == 0 ? 1 : 0;
+					int end = regexString.lastIndexOf("/") == regexString.indexOf("/") ? regexString.length() : regexString.lastIndexOf("/");
+					matchString = regexString.substring(start, end);
+					matchFlags = end + 1 < regexString.length() ? regexString.substring(end + 1) : "";
+					matchType = "regex";
+				}
+
+				// create a new PatchReplacement object
+				PatchReplacement patchReplacement = new PatchReplacement()
+						.setMatch(matchString)
+						.setMatchFlags(matchFlags)
+						.setMatchType(matchType)
+						.setReplace(replaceString)
+						.setReplaceType(replaceType);
+
+				parsedPatch.addReplacement(patchReplacement);
+			}
+
+			if(parsedPatch.getReplacements() == null || parsedPatch.getReplacements().isEmpty()) return null;
+
+			TextRange textRange = InlayHintsUtils.INSTANCE.getTextRangeWithoutLeadingCommentsAndWhitespaces(element);
+			int length = element.getContainingFile().getTextLength();
+			TextRange adjustedRange = new TextRange(Integer.min(textRange.getStartOffset(), length), Integer.min(textRange.getStartOffset(), length));
+
+			String findString = findLiteral.getStringValue();
+			String findFlags = "";
+			String findType = "string";
+			if(findLiteral.isRegExpLiteral()){
+				String regexString = findLiteral.getText();
+				findString = regexString.substring(1, regexString.lastIndexOf("/"));
+				findFlags = regexString.substring(findString.length() + 2);
+				findType = "regex";
+			}
+
+			parsedPatch
+					.setFind(findString)
+					.setFindFlags(findFlags)
+					.setFindType(findType)
+					.setRange(adjustedRange);
+
+			parsedPatch.setFindRange(findLiteral.getTextRange());
+			parsedPatch.findObject = findProperty;
+
+			parsedPatch.setReplacementRange(replacementProperty.getTextRange());
+			parsedPatch.replacementObject = replacementProperty;
+
+			for(JSObjectLiteralExpression replacementObject : replacementArray){
+				if(replacementObject.getTextRange() != null){
+					parsedPatch.addReplaceRange(replacementObject.getTextRange());
 				}
 			}
 
-			String matchString = matchLiteral.getStringValue();
-			String matchFlags = "";
-			String matchType = "string";
-			if(matchLiteral.isRegExpLiteral()){
-				String regexString = matchLiteral.getText();
-				int start = regexString.indexOf("/") == 0 ? 1 : 0;
-				int end = regexString.lastIndexOf("/") == regexString.indexOf("/") ? regexString.length() : regexString.lastIndexOf("/");
-				matchString = regexString.substring(start, end);
-				matchFlags = end + 1 < regexString.length() ? regexString.substring(end + 1) : "";
-				matchType = "regex";
+			for(JSObjectLiteralExpression replacementObject : replacementArray){
+				JSProperty matchProperty = replacementObject.findProperty("match");
+				if(matchProperty != null && matchProperty.getTextRange() != null){
+					parsedPatch.addMatchRange(matchProperty.getTextRange());
+				}
 			}
 
-			// create a new PatchReplacement object
-			PatchReplacement patchReplacement = new PatchReplacement()
-					.setMatch(matchString)
-					.setMatchFlags(matchFlags)
-					.setMatchType(matchType)
-					.setReplace(replaceString)
-					.setReplaceType(replaceType);
 
-			parsedPatch.addReplacement(patchReplacement);
+			return parsedPatch;
+		}catch(Exception e){
+			Logs.error(e);
+			return null;
 		}
-
-		if(parsedPatch.getReplacements() == null || parsedPatch.getReplacements().isEmpty()) return null;
-
-		TextRange textRange = InlayHintsUtils.INSTANCE.getTextRangeWithoutLeadingCommentsAndWhitespaces(element);
-		int length = element.getContainingFile().getTextLength();
-		TextRange adjustedRange = new TextRange(Integer.min(textRange.getStartOffset(), length), Integer.min(textRange.getStartOffset(), length));
-
-		String findString = findLiteral.getStringValue();
-		String findFlags = "";
-		String findType = "string";
-		if(findLiteral.isRegExpLiteral()){
-			String regexString = findLiteral.getText();
-			findString = regexString.substring(1, regexString.lastIndexOf("/"));
-			findFlags = regexString.substring(findString.length() + 2);
-			findType = "regex";
-		}
-
-		parsedPatch
-				.setFind(findString)
-				.setFindFlags(findFlags)
-				.setFindType(findType)
-				.setRange(adjustedRange);
-
-		parsedPatch.setFindRange(findLiteral.getTextRange());
-		parsedPatch.findObject = findProperty;
-
-		parsedPatch.setReplacementRange(replacementProperty.getTextRange());
-		parsedPatch.replacementObject = replacementProperty;
-
-		for(JSObjectLiteralExpression replacementObject : replacementArray){
-			if(replacementObject.getTextRange() != null){
-				parsedPatch.addReplaceRange(replacementObject.getTextRange());
-			}
-		}
-
-		for(JSObjectLiteralExpression replacementObject : replacementArray){
-			JSProperty matchProperty = replacementObject.findProperty("match");
-			if(matchProperty != null && matchProperty.getTextRange() != null){
-				parsedPatch.addMatchRange(matchProperty.getTextRange());
-			}
-		}
-
-
-		return parsedPatch;
 	}
 
 	// todo: update, very lazy check for testing
 	public static ParsedPatch fromFindLiteral(PsiElement element){
-		// check if the element is a literal string or regex
-		if(!(element instanceof JSLiteralExpression findLiteral)) return null;
+		try{
+			// check if the element is a literal string or regex
+			if(!(element instanceof JSLiteralExpression findLiteral)) return null;
 
-		// check if the element is associated with a property
-		if(!(element.getParent() instanceof JSProperty findProperty)) return null;
+			// check if the element is associated with a property
+			if(!(findLiteral.getParent() instanceof JSProperty findProperty)) return null;
 
-		// check if the property is named "find"
-		if(!"find".equals(findProperty.getName())) return null;
+			// check if the property is named "find"
+			if(!"find".equals(findProperty.getName())) return null;
 
-		return fromPatchObject(findProperty.getParent());
+			return fromPatchObject(findProperty.getParent());
+		}catch(Exception e){
+			Logs.error(e);
+			return null;
+		}
 	}
 
 	public static ParsedPatch fromMatchLiteral(PsiElement element){
-		// check if the element is a literal string or regex
-		if(!(element instanceof JSLiteralExpression matchLiteral)) return null;
+		try{
+			// check if the element is a literal string or regex
+			if(!(element instanceof JSLiteralExpression matchLiteral)) return null;
 
-		// check if the element is associated with a property
-		if(!(element.getParent() instanceof JSProperty matchProperty)) return null;
+			// check if the element is associated with a property
+			if(!(element.getParent() instanceof JSProperty matchProperty)) return null;
 
-		// check if the property is named "match"
-		if(!"match".equals(matchProperty.getName())) return null;
+			// check if the property is named "match"
+			if(!"match".equals(matchProperty.getName())) return null;
 
-		// check if match is in an object
-		if(!(matchProperty.getParent() instanceof JSObjectLiteralExpression replacementObject)) return null;
-		// check if the is object in an array
-		PsiElement replacementValue = replacementObject;
-		if((replacementObject.getParent() instanceof JSArrayLiteralExpression replacementArray)){
-			replacementValue = replacementArray;
+			// check if match is in an object
+			if(!(matchProperty.getParent() instanceof JSObjectLiteralExpression replacementObject)) return null;
+			// check if the is object in an array
+			PsiElement replacementValue = replacementObject;
+			if((replacementObject.getParent() instanceof JSArrayLiteralExpression replacementArray)){
+				replacementValue = replacementArray;
+			}
+
+			// check the parent name is "replacement"
+			if(!(replacementValue.getParent() instanceof JSProperty replacementProperty) || !"replacement".equals(replacementProperty.getName()))
+				return null;
+
+			// check if the replacement is in an object
+			if(!(replacementProperty.getParent() instanceof JSObjectLiteralExpression patchObject)) return null;
+
+			return fromPatchObject(patchObject);
+		}catch(Exception e){
+			Logs.error(e);
+			return null;
 		}
-
-		// check the parent name is "replacement"
-		if(!(replacementValue.getParent() instanceof JSProperty replacementProperty) || !"replacement".equals(replacementProperty.getName())) return null;
-
-		// check if the replacement is in an object
-		if(!(replacementProperty.getParent() instanceof JSObjectLiteralExpression patchObject)) return null;
-
-		return fromPatchObject(patchObject);
 	}
 
 	public static ParsedPatch fromReplaceLiteral(PsiElement element){
-		// check if the element is a literal string or regex
-		if(!(element instanceof JSLiteralExpression replaceLiteral)) return null;
+		try{
+			// check if the element is a literal string or regex
+			if(!(element instanceof JSLiteralExpression replaceLiteral)) return null;
 
-		// check if the element is associated with a property
-		if(!(element.getParent() instanceof JSProperty replaceProperty)) return null;
+			// check if the element is associated with a property
+			if(!(element.getParent() instanceof JSProperty replaceProperty)) return null;
 
-		// check if the property is named "replace"
-		if(!"replace".equals(replaceProperty.getName())) return null;
+			// check if the property is named "replace"
+			if(!"replace".equals(replaceProperty.getName())) return null;
 
-		// check if replace is in an object
-		if(!(replaceProperty.getParent() instanceof JSObjectLiteralExpression replacementObject)) return null;
+			// check if replace is in an object
+			if(!(replaceProperty.getParent() instanceof JSObjectLiteralExpression replacementObject)) return null;
 
-		// check if the is object in an array
-		PsiElement replacementValue = replacementObject;
-		if((replacementObject.getParent() instanceof JSArrayLiteralExpression replacementArray)){
-			replacementValue = replacementArray;
+			// check if the is object in an array
+			PsiElement replacementValue = replacementObject;
+			if((replacementObject.getParent() instanceof JSArrayLiteralExpression replacementArray)){
+				replacementValue = replacementArray;
+			}
+
+			// check the parent name is "replacement"
+			if(!(replacementValue.getParent() instanceof JSProperty replacementProperty) || !"replacement".equals(replacementProperty.getName()))
+				return null;
+
+			// check if the replacement is in an object
+			if(!(replacementProperty.getParent() instanceof JSObjectLiteralExpression patchObject)) return null;
+
+			return fromPatchObject(patchObject);
+		}catch(Exception e){
+			Logs.error(e);
+			return null;
 		}
-
-		// check the parent name is "replacement"
-		if(!(replacementValue.getParent() instanceof JSProperty replacementProperty) || !"replacement".equals(replacementProperty.getName())) return null;
-
-		// check if the replacement is in an object
-		if(!(replacementProperty.getParent() instanceof JSObjectLiteralExpression patchObject)) return null;
-
-		return fromPatchObject(patchObject);
 	}
 
 	public JSONObject toTestData(boolean applyPatch){
